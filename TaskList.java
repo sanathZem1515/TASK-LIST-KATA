@@ -71,6 +71,9 @@ public final class TaskList implements Runnable {
             case "setNewId":
                 setNewId(commandRest[1]);
                 break;
+            case "deleteId":
+                deleteId(commandRest[1]);
+                break;
             default:
                 error(command);
                 break;
@@ -147,6 +150,7 @@ public final class TaskList implements Runnable {
         out.println("  deadline <task ID> <date>");
         out.println("  today ");
         out.println("  setNewId <CurrentTaskID> <NewTaskID>");
+        out.println("  delete <task ID>");
         out.println();
     }
 
@@ -215,6 +219,17 @@ public final class TaskList implements Runnable {
         }
         else {
             out.printf(" No Tasks Found ");
+        }
+    }
+    private void deleteId(String taskId) {
+        for (Map.Entry<String, List<Task>> project : tasks.entrySet()) {
+            List<Task> tasks = new ArrayList<>();
+            for (Task task : project.getValue()) {
+                if ( !task.getId().equals(taskId) ) {
+                    tasks.add(task);
+                }
+            }
+            project.setValue(tasks);
         }
     }
     private void error(String command) {
