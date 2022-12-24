@@ -65,6 +65,9 @@ public final class TaskList implements Runnable {
             case "deadline":
                 addDeadline(commandRest[1]);
                 break;
+            case "today":
+                today();
+                break;
             default:
                 error(command);
                 break;
@@ -139,6 +142,7 @@ public final class TaskList implements Runnable {
         out.println("  check <task ID>");
         out.println("  uncheck <task ID>");
         out.println("  deadline <task ID> <date>");
+        out.println("  today ");
         out.println();
     }
 
@@ -162,6 +166,29 @@ public final class TaskList implements Runnable {
                     return;
                 }
             }
+        }
+    }
+
+    private void today() {
+
+        int count = 0;
+        out.printf("*****   Tasks with today as Deadlines are    *****");
+        out.println();
+        for (Map.Entry<String, List<Task>> project : tasks.entrySet()) {
+            for (Task task : project.getValue()) {
+                Date date = new Date();
+                if (task.getDeadline() != null && task.getDeadline().getDate() == date.getDate() ) {
+                    out.printf(" %s %s",task.getId(),task.getDescription());
+                    count++;
+                }
+                out.println();
+            }
+        }
+        if(count != 0) {
+            out.printf("*****   -----   *****");
+        }
+        else {
+            out.printf(" No Tasks Found ");
         }
     }
     private void error(String command) {
