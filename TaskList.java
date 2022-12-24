@@ -3,10 +3,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public final class TaskList implements Runnable {
     private static final String QUIT = "quit";
@@ -64,6 +62,9 @@ public final class TaskList implements Runnable {
             case "help":
                 help();
                 break;
+            case "deadline":
+                addDeadline(commandRest[1]);
+                break;
             default:
                 error(command);
                 break;
@@ -74,7 +75,10 @@ public final class TaskList implements Runnable {
         for (Map.Entry<String, List<Task>> project : tasks.entrySet()) {
             out.println(project.getKey());
             for (Task task : project.getValue()) {
-                out.printf("    [%c] %d: %s%n", (task.isDone() ? 'x' : ' '), task.getId(), task.getDescription());
+                out.printf("    [%c] %d: %s", (task.isDone() ? 'x' : ' '), task.getId(), task.getDescription());
+                if(task.getDeadline() != null) {
+                    out.printf(" %s ",task.getDeadline());
+                }
             }
             out.println();
         }
@@ -134,9 +138,32 @@ public final class TaskList implements Runnable {
         out.println("  add task <project name> <task description>");
         out.println("  check <task ID>");
         out.println("  uncheck <task ID>");
+        out.println("  deadline <task ID> <date>");
         out.println();
     }
 
+    private void addDeadline(String subCommandRest) {
+        String list[] = subCommandRest.split(" ");
+        try {
+            Integer taskId = Integer.parseInt(list[0]);
+            Date deadline = new SimpleDateFormat("dd/mm/yyyy").parse(list[1]);
+            setDeadline(taskId,deadline);
+        }
+        catch(Exception e){
+            System.out.println(e.getStackTrace());
+        }
+    }
+
+    private void setDeadline(Integer taskId,Date deadline) {
+        for (Map.Entry<String, List<Task>> project : tasks.entrySet()) {
+            for (Task task : project.getValue()) {
+                if (task.getId() == taskId) {
+                    task.setDeadline(deadline);
+                    return;
+                }
+            }
+        }
+    }
     private void error(String command) {
         out.printf("I don't know what the command \"%s\" is.", command);
         out.println();
