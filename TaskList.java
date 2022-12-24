@@ -13,7 +13,7 @@ public final class TaskList implements Runnable {
     private final BufferedReader in;
     private final PrintWriter out;
 
-    private long lastId = 0;
+    private long lastId = 65;
 
     public static void main(String[] args) throws Exception {
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
@@ -68,6 +68,9 @@ public final class TaskList implements Runnable {
             case "today":
                 today();
                 break;
+            case "setNewId":
+                setNewId(commandRest[1]);
+                break;
             default:
                 error(command);
                 break;
@@ -78,7 +81,7 @@ public final class TaskList implements Runnable {
         for (Map.Entry<String, List<Task>> project : tasks.entrySet()) {
             out.println(project.getKey());
             for (Task task : project.getValue()) {
-                out.printf("    [%c] %d: %s", (task.isDone() ? 'x' : ' '), task.getId(), task.getDescription());
+                out.printf("    [%c] %s: %s", (task.isDone() ? 'x' : ' '), task.getId(), task.getDescription());
                 if(task.getDeadline() != null) {
                     out.printf(" %s ",task.getDeadline());
                 }
@@ -121,10 +124,10 @@ public final class TaskList implements Runnable {
     }
 
     private void setDone(String idString, boolean done) {
-        int id = Integer.parseInt(idString);
+        String id = idString;
         for (Map.Entry<String, List<Task>> project : tasks.entrySet()) {
             for (Task task : project.getValue()) {
-                if (task.getId() == id) {
+                if (task.getId().equals(id)) {
                     task.setDone(done);
                     return;
                 }
@@ -143,6 +146,7 @@ public final class TaskList implements Runnable {
         out.println("  uncheck <task ID>");
         out.println("  deadline <task ID> <date>");
         out.println("  today ");
+        out.println("  setNewId <CurrentTaskID> <NewTaskID>");
         out.println();
     }
 
@@ -151,22 +155,44 @@ public final class TaskList implements Runnable {
         try {
             Integer taskId = Integer.parseInt(list[0]);
             Date deadline = new SimpleDateFormat("dd/mm/yyyy").parse(list[1]);
-            setDeadline(taskId,deadline);
+            setDeadline(taskId+"",deadline);
         }
         catch(Exception e){
-            System.out.println(e.getStackTrace());
+            out.print(e.getStackTrace());
         }
     }
 
-    private void setDeadline(Integer taskId,Date deadline) {
+    private void setDeadline(String taskId,Date deadline) {
         for (Map.Entry<String, List<Task>> project : tasks.entrySet()) {
             for (Task task : project.getValue()) {
-                if (task.getId() == taskId) {
+                if (task.getId().equals(taskId)) {
                     task.setDeadline(deadline);
                     return;
                 }
             }
         }
+    }
+
+    private void setNewId(String subCommandRest) {
+        String list[] = subCommandRest.split(" ",2);
+        try {
+            String currId = list[0];
+            String newId = list[1];
+
+            for (Map.Entry<String, List<Task>> project : tasks.entrySet()) {
+                for (Task task : project.getValue()) {
+                    if (task.getId().equals(currId)) {
+                        task.setId(newId);
+                        return;
+                    }
+                }
+            }
+
+        }
+        catch (Exception e) {
+            out.println(e.getStackTrace());
+        }
+
     }
 
     private void today() {
@@ -196,7 +222,7 @@ public final class TaskList implements Runnable {
         out.println();
     }
 
-    private long nextId() {
-        return ++lastId;
+    private String nextId() {
+        return (char)(lastId++)+"";
     }
 }

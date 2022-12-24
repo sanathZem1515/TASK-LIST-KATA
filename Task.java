@@ -1,20 +1,28 @@
 import java.util.Date;
 
 public final class Task {
-    private final long id;
+    private String id;
     private final String description;
     private boolean done;
     private Date deadline;
     
-    public Task(long id, String description, boolean done) {
-        this.id = id;
+    public Task(String id, String description, boolean done) {
+        setId(id);
         this.description = description;
         this.done = done;
         this.deadline = null;
     }
 
-    public long getId() {
+    public String getId() {
         return id;
+    }
+    public void setId(String id) {
+        if(validateId(id)) {
+            this.id = id;
+        }
+        else {
+            System.out.println("Id is not Valid");
+        }
     }
 
     public String getDescription() {
@@ -35,5 +43,10 @@ public final class Task {
 
     public void setDeadline(Date deadline) {
         this.deadline = deadline;
+    }
+    private boolean validateId(String id) {
+        return ((!id.equals(""))
+                && (id != null)
+                && (id.matches("^[a-zA-Z]*$")));
     }
 }
