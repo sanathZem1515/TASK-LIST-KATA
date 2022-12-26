@@ -20,9 +20,6 @@ public final class Task {
         if(validateId(id)) {
             this.id = id;
         }
-        else {
-            System.out.println("Id is not Valid");
-        }
     }
 
     public String getDescription() {

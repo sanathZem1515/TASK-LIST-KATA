@@ -47,8 +47,8 @@ public final class TaskList implements Runnable {
         String[] commandRest = commandLine.split(" ", 2);
         String command = commandRest[0];
         switch (command) {
-            case "show":
-                show();
+            case "view":
+                show(commandRest[1]);
                 break;
             case "add":
                 add(commandRest[1]);
@@ -80,16 +80,64 @@ public final class TaskList implements Runnable {
         }
     }
 
-    private void show() {
+    private void viewByProject() {
         for (Map.Entry<String, List<Task>> project : tasks.entrySet()) {
             out.println(project.getKey());
             for (Task task : project.getValue()) {
                 out.printf("    [%c] %s: %s", (task.isDone() ? 'x' : ' '), task.getId(), task.getDescription());
-                if(task.getDeadline() != null) {
-                    out.printf(" %s ",task.getDeadline());
+                if (task.getDeadline()!=null) {
+                    out.printf(" %s ", task.getDeadline());
+                }
+                out.println();
+            }
+            out.println();
+        }
+    }
+
+    private void viewByDate() {
+        List<Task> tasksList = new ArrayList<>();
+        for (Map.Entry<String, List<Task>> project : tasks.entrySet()) {
+            out.println(project.getKey());
+            for (Task task : project.getValue()) {
+                tasksList.add(task);
+            }
+        }
+
+        Collections.sort(tasksList,new TasksComparator());
+
+        for(Task task : tasksList) {
+            out.printf("    [%c] %s: %s", (task.isDone() ? 'x' : ' '), task.getId(), task.getDescription());
+            out.printf(" %s ", task.getDeadline());
+            out.println();
+        }
+    }
+
+    private void viewByDeadline() {
+        for (Map.Entry<String, List<Task>> project : tasks.entrySet()) {
+            out.println(project.getKey());
+            for (Task task : project.getValue()) {
+                if (task.getDeadline()!=null) {
+                    out.printf("    [%c] %s: %s", (task.isDone() ? 'x' : ' '), task.getId(), task.getDescription());
+                    out.printf(" %s ", task.getDeadline().getDate());
+                    out.println();
                 }
             }
             out.println();
+        }
+    }
+
+    private void show(String subCommandRest) {
+        String list[] = subCommandRest.split(" ");
+        String cmd = list[1];
+
+        if(cmd.equalsIgnoreCase("project")) {
+            viewByProject();
+        }
+        else if(cmd.equalsIgnoreCase("date")) {
+            viewByDate();
+        }
+        else if(cmd.equalsIgnoreCase("deadline")) {
+            viewByDeadline();
         }
     }
 
@@ -142,7 +190,7 @@ public final class TaskList implements Runnable {
 
     private void help() {
         out.println("Commands:");
-        out.println("  show");
+        out.println("  view by project");
         out.println("  add project <project name>");
         out.println("  add task <project name> <task description>");
         out.println("  check <task ID>");
@@ -151,15 +199,17 @@ public final class TaskList implements Runnable {
         out.println("  today ");
         out.println("  setNewId <CurrentTaskID> <NewTaskID>");
         out.println("  delete <task ID>");
+        out.println("  view by date");
+        out.println("  view by deadline");
         out.println();
     }
 
     private void addDeadline(String subCommandRest) {
         String list[] = subCommandRest.split(" ");
         try {
-            Integer taskId = Integer.parseInt(list[0]);
+            String taskId = list[0];
             Date deadline = new SimpleDateFormat("dd/mm/yyyy").parse(list[1]);
-            setDeadline(taskId+"",deadline);
+            setDeadline(taskId,deadline);
         }
         catch(Exception e){
             out.print(e.getStackTrace());
@@ -200,25 +250,15 @@ public final class TaskList implements Runnable {
     }
 
     private void today() {
-
-        int count = 0;
-        out.printf("*****   Tasks with today as Deadlines are    *****");
+        out.printf("*****   Tasks Due   *****");
         out.println();
         for (Map.Entry<String, List<Task>> project : tasks.entrySet()) {
             for (Task task : project.getValue()) {
-                Date date = new Date();
-                if (task.getDeadline() != null && task.getDeadline().getDate() == date.getDate() ) {
+                if (!task.isDone() ) {
                     out.printf(" %s %s",task.getId(),task.getDescription());
-                    count++;
                 }
                 out.println();
             }
-        }
-        if(count != 0) {
-            out.printf("*****   -----   *****");
-        }
-        else {
-            out.printf(" No Tasks Found ");
         }
     }
     private void deleteId(String taskId) {
@@ -232,6 +272,7 @@ public final class TaskList implements Runnable {
             project.setValue(tasks);
         }
     }
+    
     private void error(String command) {
         out.printf("I don't know what the command \"%s\" is.", command);
         out.println();
