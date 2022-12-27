@@ -1,6 +1,8 @@
+package Commands;
+
 import java.util.Date;
 
-public final class Task {
+public  class Task {
     private String id;
     private final String description;
     private boolean done;

@@ -1,3 +1,7 @@
+package Commands.Views;
+
+import Commands.Task;
+
 import java.util.Comparator;
 
 public class TasksComparator implements Comparator<Task> {
